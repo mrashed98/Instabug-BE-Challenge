@@ -1,5 +1,6 @@
 class MessagesController < ApplicationController
   before_action :load_app, :load_chat
+  wrap_parameters false
 
   def index
     messages = []
@@ -16,14 +17,11 @@ class MessagesController < ApplicationController
   end
 
   def create
-    message_count = @chat.messages_count || 0
+    message_count = $redis.incr(params[:application_token] + "-chat_number-" + params[:chat_number] + "-message_number")
 
-    msg = Message.new(chat_id: @chat.id, body: message_params[:body], number: message_count+1)
-    msg.save!
+    MessageWorkerJob.perform_async(message_params[:body], @chat.id, message_count)
 
-    @chat.update!(messages_count: message_count+1)
-
-    render json: msg.attributes.except("id", "chat_number")
+    render json: { message_number: message_count }, status: 201
   end
 
   def update
@@ -36,7 +34,7 @@ class MessagesController < ApplicationController
   private
 
     def message_params
-      params.require(:message).permit(:body)
+      params.permit(:body, :application_token, :chat_number)
     end
 
     def load_app

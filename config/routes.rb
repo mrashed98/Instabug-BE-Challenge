@@ -1,5 +1,10 @@
+require "sidekiq/web"
+
+
 Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
+  mount Sidekiq::Web => "/sidekiq"
+
 
   get "/applications" => "apps#index"
   get "/applications/:application_token" => "apps#show"

@@ -17,16 +17,11 @@ class ChatsController < ApplicationController
   end
 
   def create
-    chat_count = @app.chats_count || 0
+    chat_count = $redis.incr(params[:application_token] + "-chat_number")
 
-    # Create a new chat and assign the application_token manually
-    chat = Chat.new(application_token: @app.token, number: chat_count + 1, messages_count: 0)
-    chat.save!
+    ChatWorkerJob.perform_async(@app.token, chat_count)
 
-    # Update the app's total chats count
-    @app.update!(chats_count: chat_count + 1)
-
-    render json: decorator(chat), status: 201
+    render json: { chat_number: chat_count }, status: 201
   end
 
   private
