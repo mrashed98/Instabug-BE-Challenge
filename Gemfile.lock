@@ -193,8 +193,6 @@ GEM
       redis-client (>= 0.22.0)
     redis-client (0.22.2)
       connection_pool
-    redis-namespace (1.11.0)
-      redis (>= 4)
     regexp_parser (2.9.2)
     reline (0.5.10)
       io-console (~> 0.5)
@@ -278,7 +276,6 @@ DEPENDENCIES
   puma (>= 5.0)
   rails (~> 7.2.1)
   redis
-  redis-namespace
   rubocop-rails-omakase
   sidekiq
   sidekiq-scheduler
