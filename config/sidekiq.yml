@@ -1,0 +1,12 @@
+
+queues:
+  - update_counts
+  - chats
+  - messages
+
+:scheduler:
+  :schedule:
+    Update_counts:
+      every: '2m'
+      class: UpdateCountsJob
+  

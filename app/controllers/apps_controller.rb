@@ -1,4 +1,6 @@
 class AppsController < ApplicationController
+  wrap_parameters false
+
   def index
     apps = []
     App.all.find_each do |app|
@@ -18,7 +20,7 @@ class AppsController < ApplicationController
   end
 
   def update
-    app = App.find(params[:application_token])
+    app = App.find_by!(token: params[:application_token])
     app.update!(name: app_params[:name])
     render json: { message: "Updated Successfully" }, status: 200
   end
