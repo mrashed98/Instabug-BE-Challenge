@@ -7,6 +7,6 @@ queues:
 :scheduler:
   :schedule:
     Update_counts:
-      every: '2m'
+      every: '50m'
       class: UpdateCountsJob
   

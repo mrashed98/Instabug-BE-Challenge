@@ -1,4 +1,0 @@
-update_counts:
-  cron: "*/2 * * * *"
-  class: "UpdateCountsJob"
-  queue: "update_counts"
