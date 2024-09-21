@@ -19,4 +19,5 @@ Rails.application.routes.draw do
   get "/applications/:application_token/chats/:chat_number/messages/:message_number" => "messages#show"
   post "/applications/:application_token/chats/:chat_number/messages/new" => "messages#create"
   put "/applications/:application_token/chats/:chat_number/messages/:message_number" => "messages#update"
+  post "/applications/:application_token/chats/:chat_number/messages/search" => "messages#search"
 end
