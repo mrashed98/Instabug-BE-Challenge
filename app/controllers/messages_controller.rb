@@ -31,6 +31,16 @@ class MessagesController < ApplicationController
     render json: { message: "Updated Successfully" }, status: 200
   end
 
+  def search
+    if params[:query].present?
+      messages = Message.search(@chat.id, params[:query])
+      render json: messages, status: 200
+    else
+      render json: { message: "Query Paramter Missing" }, status: 400
+    end
+  end
+
+
   private
 
     def message_params
