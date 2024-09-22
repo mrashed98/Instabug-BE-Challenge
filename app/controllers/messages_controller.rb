@@ -17,9 +17,14 @@ class MessagesController < ApplicationController
   end
 
   def create
-    message_count = $redis.incr(params[:application_token] + "-chat_number-" + params[:chat_number] + "-message_number")
+    validated_params = message_params
+    if validated_params[:body].blank?
+      return render json: { error: "Validation failed: Body can't be missing or blank" }, status: :unprocessable_entity
+    end
 
-    MessageWorkerJob.perform_async(message_params[:body], @chat.id, message_count)
+    message_count = $redis.incr(validated_params[:application_token] + "-chat_number-" + validated_params[:chat_number] + "-message_number")
+
+    MessageWorkerJob.perform_async(validated_params[:body], @chat.id, message_count)
 
     render json: { message_number: message_count }, status: 201
   end
@@ -39,7 +44,6 @@ class MessagesController < ApplicationController
       render json: { message: "Query Paramter Missing" }, status: 400
     end
   end
-
 
   private
 
