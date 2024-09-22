@@ -1,0 +1,81 @@
+services:
+  sidekiq:
+    build: .
+    command: bundle exec sidekiq
+    volumes:
+      - .:/app
+    environment:
+      - REDIS_URL=redis://redis:6379/1
+      - DB_HOST=mysql
+      - DB_USER=root
+      - DB_NAME=instabug_simple_chat
+      - DB_PASSWORD=Instabug@Qc1
+    depends_on:
+      - redis
+      - mysql
+    networks:
+      - default
+
+  # MySQL service
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_USERNAME: instabug
+      MYSQL_ROOT_PASSWORD: Instabug@Qc1
+      MYSQL_DATABASE: instabug_simple_chat
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    networks:
+      - default
+
+  # Redis service
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+
+  # Elasticsearch service
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+
+  app:
+    build: .
+    command: bash -c "bundle exec rake db:migrate RAILS_ENV=development && bundle exec rails s -p 3000 -b '0.0.0.0'"
+    restart: always
+    volumes:
+      - ".:/app"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mysql
+      - elasticsearch
+      - redis
+      - sidekiq
+    environment:
+      DB_USER: root
+      DB_NAME: instabug_simple_chat
+      DB_PASSWORD: Instabug@Qc1
+      DB_HOST: mysql
+      REDIS_URL: redis://redis:6379/1
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+    networks:
+      - default
+    
+volumes:
+  mysql_data:
+  esdata:

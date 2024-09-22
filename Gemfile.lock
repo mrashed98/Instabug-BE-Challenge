@@ -1,3 +1,9 @@
+GIT
+  remote: https://github.com/ruby/net-pop.git
+  revision: e8d0afe2773b9eb6a23c39e9e437f6fc0fc7c733
+  specs:
+    net-pop (0.1.2)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -71,7 +77,6 @@ GEM
       minitest (>= 5.1)
       securerandom (>= 0.3)
       tzinfo (~> 2.0, >= 2.0.5)
-    ansi (1.5.0)
     ast (2.4.2)
     base64 (0.2.0)
     bigdecimal (3.1.8)
@@ -101,9 +106,6 @@ GEM
       elasticsearch-api (= 8.15.0)
     elasticsearch-api (8.15.0)
       multi_json
-    elasticsearch-extensions (0.0.33)
-      ansi
-      elasticsearch
     elasticsearch-model (8.0.0)
       activesupport (> 3)
       elasticsearch (~> 8)
@@ -159,7 +161,6 @@ GEM
     net-imap (0.4.16)
       date
       net-protocol
-    net-pop (0.1.2)
     net-protocol (0.2.2)
       timeout
     net-smtp (0.5.0)
@@ -270,7 +271,7 @@ GEM
     rubocop-performance (1.22.1)
       rubocop (>= 1.48.1, < 2.0)
       rubocop-ast (>= 1.31.1, < 2.0)
-    rubocop-rails (2.26.1)
+    rubocop-rails (2.26.2)
       activesupport (>= 4.2.0)
       rack (>= 1.1)
       rubocop (>= 1.52.0, < 2.0)
@@ -313,31 +314,23 @@ GEM
 
 PLATFORMS
   aarch64-linux
-  aarch64-linux-gnu
-  aarch64-linux-musl
   arm-linux
-  arm-linux-gnu
-  arm-linux-musl
   arm64-darwin
   x86-linux
-  x86-linux-gnu
-  x86-linux-musl
   x86_64-darwin
   x86_64-linux
-  x86_64-linux-gnu
-  x86_64-linux-musl
 
 DEPENDENCIES
   bootsnap
   brakeman
   database_cleaner-active_record
   debug
-  elasticsearch-extensions
   elasticsearch-model
   elasticsearch-rails
   factory_bot_rails
   faker
   mysql2
+  net-pop!
   puma (>= 5.0)
   rails (~> 7.2.1)
   redis
