@@ -10,9 +10,11 @@ services:
       - DB_USER=root
       - DB_NAME=instabug_simple_chat
       - DB_PASSWORD=Instabug@Qc1
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
     depends_on:
       - redis
       - mysql
+      - elasticsearch
     networks:
       - default
 
@@ -35,6 +37,8 @@ services:
     image: redis:latest
     ports:
       - "6379:6379"
+    networks:
+      - default
 
   # Elasticsearch service
   elasticsearch:
@@ -52,6 +56,8 @@ services:
       - esdata:/usr/share/elasticsearch/data
     ports:
       - "9200:9200"
+    networks:
+      - default
 
   app:
     build: .
