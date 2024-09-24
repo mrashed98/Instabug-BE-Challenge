@@ -25,11 +25,11 @@ gem "bootsnap", require: false
 
 gem "mysql2"
 
+gem "httparty"
+
 gem "sidekiq"
 gem "sidekiq-scheduler"
 
-gem "elasticsearch-model"
-gem "elasticsearch-rails"
 
 gem "net-pop", github: "ruby/net-pop"
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
