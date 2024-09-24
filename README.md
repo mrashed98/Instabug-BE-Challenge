@@ -320,9 +320,8 @@ Here i used ```Sidekiq``` for two main purposes.
                 "created_at": "2024-09-24T11:08:32.180398Z",
                 "updated_at": "2024-09-24T11:08:32.180398Z"
             }
-          ```
-
-# Testing
+           ```
+## Testing
 Created Unit Tests for Application and Chats Controllers/Models Using RSpec.
 **Caution:** test enviroment uses the same database the development enviroment uses. So be careful, becasue I added database cleaner before performing the test cases, and tests that would delete all the records in the database before performing the test cases.
 
