@@ -137,13 +137,8 @@ func SearchMessages(c *gin.Context, db *gorm.DB, EsClient *elastic.Client) {
 	log.Printf("QUERY: %s", query.Query)
 	msgs, err := services.SearchMessages(EsClient, chat.ID, query.Query)
 
-	if err != nil || msgs == nil {
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": msgs})
-		return
-	}
-
-	if len(msgs) < 1 {
-		c.JSON(http.StatusOK, msgs)
 		return
 	}
 

@@ -24,7 +24,8 @@ func GetMessages(db *gorm.DB, chatID uint) []models.Message {
 
 func GetMessage(db *gorm.DB, chatID uint, msgNumber uint) (*models.Message, error) {
 	var message models.Message
-	err := db.Where("chat_id = ? and number = ?", chatID, msgNumber).Find(&message).Error
+	err := db.Where("chat_id = ? and number = ?", chatID, msgNumber).First(&message).Error
+
 	return &message, err
 }
 
@@ -80,6 +81,8 @@ func UpdateMessage(db *gorm.DB, chatID uint, messageNumber int, body string) err
 		return err
 	}
 
+	msgID, err := getMessageID(models.EsClient, chatID, message.Body)
+
 	message.Body = body
 	message.UpdatedAt = parsedTime
 
@@ -88,8 +91,13 @@ func UpdateMessage(db *gorm.DB, chatID uint, messageNumber int, body string) err
 		log.Println("ERROR saving updates")
 		log.Println(err)
 		return err
-
 	}
+
+	if err = message.UpdateMessageIndex(msgID); err != nil {
+		fmt.Println("Error while Updating message")
+		return err
+	}
+
 	return err
 }
 
@@ -109,7 +117,6 @@ func SearchMessages(EsClient *elastic.Client, chatID uint, query string) ([]mode
 		log.Fatalf("Error executing search: %v", err)
 	}
 
-	// Inspect search results
 	if searchResult != nil {
 		log.Printf("Total Hits: %d\n", searchResult.Hits.TotalHits.Value)
 
@@ -130,11 +137,11 @@ func SearchMessages(EsClient *elastic.Client, chatID uint, query string) ([]mode
 	}
 	log.Printf("Search result JSON: %s", string(resultJson))
 
-	if err != nil {
-		return nil, err
-	}
-
 	var messages []models.Message
+
+	if err != nil {
+		return messages, err
+	}
 
 	for _, hit := range searchResult.Hits.Hits {
 		var msg models.Message
@@ -147,7 +154,41 @@ func SearchMessages(EsClient *elastic.Client, chatID uint, query string) ([]mode
 			messages = append(messages, msg)
 		}
 	}
+
 	return messages, nil
+}
+
+func getMessageID(EsClient *elastic.Client, chatID uint, query string) (string, error) {
+	log.Printf("chat id: %d\nquery:: %s\n", chatID, query)
+
+	searchResult, err := EsClient.Search().
+		Index("messages").
+		Query(elastic.NewBoolQuery().
+			Must(elastic.NewMatchPhraseQuery("Body", query)).
+			Filter(elastic.NewTermQuery("ChatID", chatID)),
+		).
+		Do(context.Background())
+
+	if err != nil {
+		log.Fatalf("Error executing search: %v", err)
+	}
+
+	var messageID string
+
+	if searchResult != nil {
+		log.Printf("Total Hits: %d\n", searchResult.Hits.TotalHits.Value)
+
+		if searchResult.Hits.TotalHits.Value > 0 {
+			log.Println("Search Results:")
+			for _, hit := range searchResult.Hits.Hits {
+				messageID = hit.Id
+			}
+		} else {
+			log.Println("No search results found")
+		}
+	}
+
+	return messageID, err
 }
 
 func EnqueueMessageJob(message models.Message) error {

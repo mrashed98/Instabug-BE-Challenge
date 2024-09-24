@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/olivere/elastic/v7"
@@ -61,10 +60,10 @@ func (m *Message) IndexMessage() error {
 }
 
 // UpdateMessageIndex updates the message index in Elasticsearch
-func (m *Message) UpdateMessageIndex() error {
+func (m *Message) UpdateMessageIndex(messageID string) error {
 	_, err := EsClient.Update().
 		Index("messages").
-		Id(strconv.FormatUint(uint64(m.ID), 10)).
+		Id(messageID).
 		Doc(m).
 		Do(context.Background())
 	if err != nil {
