@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -82,7 +83,7 @@ func CreateMessage(c *gin.Context, db *gorm.DB, rdb *redis.Client) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}
-	messageNumber, err := services.CreateMessage(db, rdb, uint(chat.ID), message.Body)
+	messageNumber, err := services.CreateMessage(db, rdb, uint(chat.ID), c.Param("application_token"), message.Body)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create message"})
@@ -133,7 +134,7 @@ func SearchMessages(c *gin.Context, db *gorm.DB, EsClient *elastic.Client) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}
-
+	log.Printf("QUERY: %s", query.Query)
 	msgs, err := services.SearchMessages(EsClient, chat.ID, query.Query)
 
 	if err != nil || msgs == nil {

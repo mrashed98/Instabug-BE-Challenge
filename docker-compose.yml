@@ -48,6 +48,11 @@ services:
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - xpack.security.enabled=false
       - xpack.security.http.ssl.enabled=false
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     ulimits:
       memlock:
         soft: -1
@@ -72,6 +77,30 @@ services:
       - elasticsearch
       - redis
       - sidekiq
+      - go_service
+    environment:
+      DB_USER: root
+      DB_NAME: instabug_simple_chat
+      DB_PASSWORD: Instabug@Qc1
+      DB_HOST: mysql
+      REDIS_URL: redis://redis:6379/1
+      GO_SERVICE: http://go_service:8080
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+    networks:
+      - default
+    
+  go_service:
+    build: ./go_service
+    command: go run main.go
+    restart: always
+    volumes:
+      - ./go_service/:/go_service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+      - elasticsearch
+      - redis
     environment:
       DB_USER: root
       DB_NAME: instabug_simple_chat
@@ -81,7 +110,7 @@ services:
       ELASTICSEARCH_URL: http://elasticsearch:9200
     networks:
       - default
-    
+
 volumes:
   mysql_data:
   esdata:

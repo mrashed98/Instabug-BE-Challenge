@@ -61,13 +61,6 @@ func GetChat(c *gin.Context, db *gorm.DB) {
 
 func CreateChat(c *gin.Context, db *gorm.DB, rdb *redis.Client) {
 	applicationToken := c.Param("application_token")
-
-	_, err := services.GetApp(db, applicationToken)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Application Not Found"})
-		return
-	}
-
 	chatNumber := services.CreateChat(db, rdb, applicationToken)
 	c.JSON(http.StatusCreated, gin.H{"chat_number": chatNumber})
 }

@@ -1,19 +1,26 @@
 class MessagesController < ApplicationController
-  before_action :load_app, :load_chat
+  before_action :load_app
   wrap_parameters false
 
   def index
-    messages = []
-    Message.where(chat_id: @chat.id).find_each do |msg|
-      messages << msg.attributes.except("id", "chat_id")
+    messages = MessageService.getMessages(@app.token, message_params[:chat_number])
+    if messages == nil
+      render json: { error: "Error occurred while geting the messages, please try again later" }, status: 500
+      return
     end
+
     render json: messages, status: 200
   end
 
   def show
-    msg = Message.find_by!(chat_id: @chat.id, number: params[:message_number])
+    msg = MessageService.getMessage(@app.token, message_params[:chat_number], message_params[:message_number])
 
-    render json: msg.attributes.except("id", "chat_id")
+    if msg == nil
+      render json: { error: "Error occurred while geting the messages, please try again later" }, status: 500
+      return
+    end
+
+    render json: msg, status: 200
   end
 
   def create
@@ -22,23 +29,34 @@ class MessagesController < ApplicationController
       return render json: { error: "Validation failed: Body can't be missing or blank" }, status: :unprocessable_entity
     end
 
-    message_count = $redis.incr(validated_params[:application_token] + "-chat_number-" + validated_params[:chat_number] + "-message_number")
+    message_count = MessageService.createMessage(validated_params[:application_token], validated_params[:chat_number], validated_params[:body])
+    if message_count == nil
+      render json: { error: "Error occurred while creating the messages, please try again later" }, status: 500
+      return
+    end
 
-    MessageWorkerJob.perform_async(validated_params[:body], @chat.id, message_count)
-
-    render json: { message_number: message_count }, status: 201
+    render json: message_count, status: 201
   end
 
   def update
-    msg = Message.find_by!(chat_id: @chat.id, number: params[:message_number])
-    msg.update!(body: message_params[:body])
+    msg = MessageService.updateMessage(@app.token, message_params[:chat_number], message_params[:message_number], message_params[:body])
+
+    if msg == nil
+      render json: { error: "Error occurred while updatinh the message, please try again later" }, status: 500
+    end
 
     render json: { message: "Updated Successfully" }, status: 200
   end
 
   def search
     if params[:query].present?
-      messages = Message.search(@chat.id, params[:query])
+      messages = MessageService.searchMessage(message_params[:application_token], message_params[:chat_number], params[:query])
+
+      if messages == nil
+        render json: { error: "Error occurred while getting the messages, please try again later" }, status: 500
+        return
+      end
+
       render json: messages, status: 200
     else
       render json: { message: "Query Paramter Missing" }, status: 400
@@ -48,7 +66,7 @@ class MessagesController < ApplicationController
   private
 
     def message_params
-      params.permit(:body, :application_token, :chat_number)
+      params.permit(:body, :application_token, :chat_number, :message_number)
     end
 
     def load_app

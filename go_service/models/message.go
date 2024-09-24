@@ -2,7 +2,9 @@ package models
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"time"
 
@@ -20,47 +22,35 @@ type Message struct {
 
 var EsClient *elastic.Client
 
-func InitElasticsearch() {
+func InitElasticsearch() error {
 	var err error
-	EsClient, err = elastic.NewClient(
-		elastic.SetURL("http://localhost:9200"),
-		elastic.SetSniff(false))
 
-	if err != nil {
-		log.Fatalf("Error creating Elasticsearch client: %s", err)
-	}
+	// Retry logic - attempt connection 5 times, with a 10-second delay between attempts
+	for i := 1; i <= 5; i++ {
+		EsClient, err = elastic.NewClient(
+			elastic.SetURL(os.Getenv("ELASTICSEARCH_URL")),
+			elastic.SetSniff(false),
+			elastic.SetTraceLog(log.New(os.Stdout, "ELASTIC ", log.LstdFlags)))
 
-	exists, err := EsClient.IndexExists("messages").Do(context.Background())
-	if err != nil {
-		log.Fatalf("Error checking if index exists: %s", err)
-	}
-
-	if !exists {
-		mapping := `
-		{
-			"mappings": {
-				"dynamic": false,  // Disable dynamic mapping
-				"properties": {
-					"ChatID": { "type": "keyword" },
-					"Body": { "type": "text", "analyzer": "english" }
-				}
-			}
-		}`
-		_, err := EsClient.CreateIndex("messages").BodyString(mapping).Do(context.Background())
-		if err != nil {
-			log.Fatalf("Error creating index: %s", err)
+		if err == nil {
+			// Successfully connected to Elasticsearch
+			fmt.Println("Connected to Elasticsearch")
+			return nil
 		}
-		log.Println("Index created")
-	} else {
-		log.Println("Index already exists")
+
+		// Log the error and retry
+		fmt.Printf("Failed to connect to Elasticsearch (attempt %d): %s\n", i, err)
+		time.Sleep(10 * time.Second)
 	}
+
+	// Return error after failing all attempts
+	return fmt.Errorf("could not connect to Elasticsearch after 5 attempts: %s", err)
 }
 
 func (m *Message) IndexMessage() error {
 
 	_, err := EsClient.Index().
 		Index("messages").
-		Id(strconv.FormatUint(uint64(m.ID), 10)).
 		BodyJson(m).
 		Do(context.Background())
 	if err != nil {

@@ -33,7 +33,7 @@ func CreateChat(db *gorm.DB, rdb *redis.Client, applicationToken string) int64 {
 	err := EnqueueChatJob(chat)
 
 	if err != nil {
-		log.Fatal("Error enqueuing Chats")
+		log.Fatalf("Error enqueuing Chats: %v", err)
 	}
 
 	return chatNumber

@@ -10,7 +10,8 @@ import (
 )
 
 func main() {
-	// Initialize database, redis, and elasticsearch
+
+	models.InitElasticsearch()
 	db := config.InitDB()
 	rdb := config.InitRedis()
 
@@ -21,8 +22,6 @@ func main() {
 	if rdb == nil {
 		panic("Failed to initialize redis")
 	}
-
-	models.InitElasticsearch()
 
 	go workers.ChatWorker(db, rdb)
 	go workers.MessageWorker(db, rdb)
